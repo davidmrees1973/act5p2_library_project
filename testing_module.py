@@ -1,5 +1,5 @@
 # Exercise 4 - Unit Testing
-# David Rees
+# David Rees (with help from ChatGPT)
 #
 # Unit tests for functions created in Exercise 3.
 
@@ -10,7 +10,7 @@ import pandas as pd
 # Import the functions that we created in Exercise 3.
 # This means we are testing the real function rather than
 # creating another copy of it in this testing file.
-from cleaning_module import clean_titles, clean_date_column
+from cleaning_module import clean_titles, clean_date_column, find_overdue_books
 # -----------------------------------------------------------------------
 
 
@@ -88,4 +88,45 @@ def test_clean_date_column_invalid_date():
     # date should have been converted to NaT.
     assert pd.isna(result["Book checkout"].iloc[0])
 
-    
+
+
+
+def test_find_overdue_books_14_day_rule():
+    """
+    Test the library's 14-day borrowing rule.
+
+    A book returned after 10 days should not be overdue.
+    A book returned after 16 days should be overdue.
+    """
+
+    # ARRANGE
+    # Create two example library transactions.
+    # One is within the 14-day allowance and one exceeds it.
+    test_data = pd.DataFrame({
+        "Books": [
+            "Book returned on time",
+            "Book returned late"
+        ],
+        "Book checkout": [
+            pd.Timestamp("2023-05-01"),
+            pd.Timestamp("2023-05-01")
+        ],
+        "Book Returned": [
+            pd.Timestamp("2023-05-11"),  # 10 days
+            pd.Timestamp("2023-05-17")   # 16 days
+        ]
+    })
+
+    # ACT
+    # Apply the 14-day borrowing rule.
+    result = find_overdue_books(test_data, allowed_days=14)
+
+    # ASSERT
+    # Only one book should be identified as overdue.
+    assert len(result) == 1
+
+    # Check that the correct book was identified.
+    assert result.iloc[0]["Books"] == "Book returned late"
+
+    # Check that the calculated borrowing period is 16 days.
+    assert result.iloc[0]["Days borrowed"] == 16

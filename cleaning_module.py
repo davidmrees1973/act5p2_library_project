@@ -75,6 +75,24 @@ def clean_titles(df):
 
 
 
+def find_overdue_books(df, allowed_days=14):
+    """
+    Return books that were borrowed for longer than the
+    permitted borrowing period.
+
+    The default borrowing period is 14 days.
+    """
+    out = df.copy()
+
+    # Calculate the number of days between checkout and return.
+    out["Days borrowed"] = (
+        out["Book Returned"] - out["Book checkout"]
+    ).dt.days
+
+    # Return only books borrowed for more than the allowed period.
+    return out[out["Days borrowed"] > allowed_days]
+
+
 #-----------------------------------------------------------------
 # ------------ See what is missing -------------
 
@@ -158,7 +176,15 @@ display_section(
 books_clean = clean_date_column(books_clean, "Book checkout")
 books_clean = clean_date_column(books_clean, "Book Returned")
 
+# Apply the library's 14-day borrowing rule.
+overdue_books = find_overdue_books(books_clean)
 
+
+# ''display overdue books
+display_section(
+    "Books borrowed for more than 14 days",
+    overdue_books
+)
 
 
 # --display rows with invalid dates
