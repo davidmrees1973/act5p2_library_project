@@ -16,6 +16,10 @@
 # •	Fix any incorrectly inputted data. Use functions to find out the anomalies in the data. 
 # •	Clear up any duplicates in the data. 
 
+print("----------------------------------------------------------------------------------------------")
+print("---------------------------Exercise 3 - Cleaning data using Python----------------------------")
+print("----------------------------------------------------------------------------------------------")
+
 #-----------------------------------------------------------------
 # ---------- Load the data --------------------
 import pandas as pd
@@ -30,15 +34,61 @@ print("\nOriginal customer data shape:")
 print(customers.shape)
 
 
+#--------------------------------------------------------
+#--------------- Functions -------------------------
+
+def display_section(title, data):
+    """Display a title followed by the supplied data."""
+    print(f"\n--- {title} ---") # could potentially add some fancy formatting here
+    print(data)
+
+
+
+def clean_date_column(dataframe, column_name):
+    """
+    Clean and convert a date column to Pandas datetime format.
+
+    Invalid dates are converted to NaT so that they can be
+    identified and investigated rather than causing an error.
+    """
+    dataframe[column_name] = (
+        dataframe[column_name]
+        .astype("string")
+        .str.replace('"', '', regex=False)
+        .str.strip()
+    )
+
+    dataframe[column_name] = pd.to_datetime(
+        dataframe[column_name],
+        format="%d/%m/%Y",
+        errors="coerce"
+    )
+
+    return dataframe
+
+
+def clean_titles(df):
+    """Strip leading and trailing spaces from book titles."""
+    out = df.copy()
+    out["Books"] = out["Books"].str.strip()
+    return out
+
+
+
 #-----------------------------------------------------------------
 # ------------ See what is missing -------------
 
+display_section(
+    "Missing library.csv (books)",
+    books.isna().sum()
+)
 
-print("\nMissing library.csv (books)")
-print(books.isna().sum())
+display_section(
+    "Missing in library_customers.csv (customers)",
+    customers.isna().sum()
+)
 
-print("\nMissing in library_customers.csv (customers)")
-print(customers.isna().sum())
+
 
 
 #-----------------------------------------------------------------
@@ -47,18 +97,32 @@ print(customers.isna().sum())
 books_clean = books.dropna(how="all").copy()  # note, how="all" only removes when all the columns are empty
 customers_clean = customers.dropna(how="all").copy()
 
-print("\nLibrary shape after removing empty rows:")
-print(books_clean.shape)
+# Remove leading and trailing whitespace from book titles
+books_clean = clean_titles(books_clean)
 
-print("\nCustomer shape after removing empty rows:")
-print(customers_clean.shape)
+
+display_section(
+    "Library shape after removing empty rows",
+    books_clean.shape
+)
+
+
+display_section(
+    "Customer shape after removing empty rows",
+    customers_clean.shape
+)
+
+
 
 
 # -- see partially incomplete records still in the "clean" data-------------
 
 incomplete_books = books_clean[books_clean.isna().any(axis=1)]
-print("\nPartially incomplete library records:")
-print(incomplete_books)
+
+display_section(
+    "Partially incomplete library records",
+    incomplete_books
+)
 
 
 
@@ -66,34 +130,48 @@ print(incomplete_books)
 #-------- Fix any data that is in the wrong format------------------
 
 # for the date fields, first remove the quotation marks
-books_clean["Book checkout"] = (
-    books_clean["Book checkout"]
-    .astype("string")
-    .str.replace('"', '', regex=False)
-    .str.strip()
-)
+# books_clean["Book checkout"] = (
+#     books_clean["Book checkout"]
+#     .astype("string")
+#     .str.replace('"', '', regex=False)
+#     .str.strip()
+# )
 
-# -- convert to d/M/Y format
-# errors="coerce" converts invalid dates to NaT (Not a Time)
-books_clean["Book checkout"] = pd.to_datetime(
-    books_clean["Book checkout"],
-    format="%d/%m/%Y",
-    errors="coerce"
-)
+# # -- convert to d/M/Y format
+# # errors="coerce" converts invalid dates to NaT (Not a Time)
+# books_clean["Book checkout"] = pd.to_datetime(
+#     books_clean["Book checkout"],
+#     format="%d/%m/%Y",
+#     errors="coerce"
+# )
 
-books_clean["Book Returned"] = pd.to_datetime(
-    books_clean["Book Returned"],
-    format="%d/%m/%Y",
-    errors="coerce"
-)
+
+
+# books_clean["Book Returned"] = pd.to_datetime(
+#     books_clean["Book Returned"],
+#     format="%d/%m/%Y",
+#     errors="coerce"
+# )
+
+
+# The above now used a function
+books_clean = clean_date_column(books_clean, "Book checkout")
+books_clean = clean_date_column(books_clean, "Book Returned")
+
+
 
 
 # --display rows with invalid dates
 invalid_checkout_dates = books_clean[
     books_clean["Book checkout"].isna()
 ]
-print("\nRecords containing invalid Book checkout date")
-print(invalid_checkout_dates)
+
+
+display_section(
+    "Records containing invalid Book checkout date",
+    invalid_checkout_dates
+)
+
 
 
 #--display rows where return date is before checkout date
@@ -102,8 +180,12 @@ return_before_checkout = books_clean[
     books_clean["Book Returned"] < books_clean["Book checkout"]
 ]
 
-print("\nReturn date is before checkout date:")
-print(return_before_checkout)
+display_section(
+    "Return date is before checkout date",
+    return_before_checkout
+)
+
+
 
 
 #--Checkout date over 10 years ago or in the future
@@ -119,15 +201,21 @@ unexpected_dates = books_clean[
     )
 ]
 
-print("\nCheckout dates in the future or a long time ago")
-print(unexpected_dates)
 
+
+display_section(
+    "Checkout dates in the future or a long time ago",
+    unexpected_dates
+)
 
 
 #-----------------------------------------------------------------
 # -------------Clear up duplicates in the data----------------
-print("\nNumber of completely duplicated library rows:")
-print(books_clean.duplicated().sum())
+
+display_section(
+    "Number of completely duplicated library rows",
+    books_clean.duplicated().sum()
+)
 
 # -- check duplicated (except ID)
 transaction_columns = [
@@ -145,8 +233,14 @@ duplicate_transactions = books_clean[
     )
 ]
 
-print("\nPossible duplicates:")
-print(duplicate_transactions)
+
+
+display_section(
+    "Possible duplicates:",
+    duplicate_transactions
+)
+
+
 
 # -- remove duplicates
 books_clean = books_clean.drop_duplicates(
@@ -163,21 +257,31 @@ invalid_customer_ids = books_clean[
     & ~books_clean["Customer ID"].isin(customers_clean["Customer ID"])
 ]
 
-print("\nLibrary book records containing an unknown Customer")
-print(invalid_customer_ids)
+
+display_section(
+    "Library book records containing an unknown Customer:",
+    invalid_customer_ids
+)
+
 
 
 # ------------------------------------------------------------
 # --- Summarise clean shape of the data
 
-print("\nMissing values remaining after cleaning:")
-print(books_clean.isna().sum())
+display_section(
+    "Missing values remaining after cleaning:",
+    books_clean.shape
+)
 
-print("\nFinal library data shape:")
-print(books_clean.shape)
+display_section(
+    "Final library data shape:",
+    invalid_customer_ids
+)
 
-print("\nCleaned library data:")
-print(books_clean)
+display_section(
+    "Cleaned library data:",
+    books_clean
+)
 
 
 # ------------------------------------------------------------
@@ -187,7 +291,10 @@ books_clean.to_csv("data/library_cleaned.csv", index=False)
 customers_clean.to_csv("data/library_customers_cleaned.csv", index=False)
 
 print("\nCleaning complete.")
-print("Cleaned files have been saved in the data folder.")
+print("\nCleaned files have been saved in the data folder.")
+
+
+
 
 
 
