@@ -1,36 +1,50 @@
-# This is a basic workflow to help you get started with Actions
+# Exercise 5 - Continuous Integration
+# David Rees
+#
+# This workflow runs automatically when code is pushed to main.
+# It installs Python and the project's required modules,
+# then runs the unit tests using Pytest.
 
 name: Davids Job
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allows the workflow to be run manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
+
+    # Use a GitHub-hosted Ubuntu machine
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello David Rees!
+      # Check out the repository so the workflow can access the project files
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      # Install the latest available Python 3 version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # Install the modules listed in requirements.txt
+      - name: Install dependencies
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          python -m pip install --upgrade pip
+          pip install -r pipeline/requirements.txt
+
+      # Run the unit tests created in Exercise 4
+      - name: Run Pytest
+        run: pytest testing_module.py -v
+
+      # Display confirmation if all previous steps have succeeded
+      - name: Pipeline completed
+        run: echo "David Rees - Library application tests completed successfully"
