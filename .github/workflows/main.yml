@@ -50,7 +50,7 @@ jobs:
       # Demonstrate using a GitHub repository secret
       - name: Use GitHub secret
         env:
-          DEMO_MESSAGE: ${{ secrets.DEMO_MESSAGE }}
+          ACT5P2_LIBRARY_SECRET: ${{ secrets.ACT5P2_LIBRARY_SECRET }}
         run: |
           if [ -n "$ACT5P2_LIBRARY_SECRET" ]; then
             echo "GitHub secret was successfully accessed"
