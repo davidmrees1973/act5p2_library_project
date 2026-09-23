@@ -37,9 +37,22 @@ print(customers.shape)
 #--------------------------------------------------------
 #--------------- Functions -------------------------
 
+# def display_section(title, data):
+#     """Display a title followed by the supplied data."""
+#     print(f"\n--- {title} ---") # could potentially add some fancy formatting here
+#     print(data)
+
+# DR 23/09/2029 New version of the function so it checks for missing data
 def display_section(title, data):
     """Display a title followed by the supplied data."""
-    print(f"\n--- {title} ---") # could potentially add some fancy formatting here
+
+    if not title:
+        raise ValueError("A section title must be provided")
+
+    if data is None:
+        raise ValueError("Section data must be provided")
+
+    print(f"\n--- {title} ---")
     print(data)
 
 
@@ -90,7 +103,7 @@ def find_overdue_books(df, allowed_days=14):
     ).dt.days
 
     # Return only books borrowed for more than the allowed period.
-    return out[out["Days borrowed"] > allowed_days]
+    return out[out["Days borrowed"] >= allowed_days]  #DR 23/09/2029 changed from > to >=
 
 
 #-----------------------------------------------------------------
@@ -182,7 +195,7 @@ overdue_books = find_overdue_books(books_clean)
 
 # ''display overdue books
 display_section(
-    "Books borrowed for more than 14 days",
+    "Books borrowed for more than 14 days (may incude duplicates)",
     overdue_books
 )
 
@@ -275,8 +288,20 @@ books_clean = books_clean.drop_duplicates(
 )
 
 
+# Apply the library's 14-day borrowing rule.
+overdue_books = find_overdue_books(books_clean)
 
-#--Check Custoemr ID's in library books exists in the customers table
+
+# ''display overdue books
+display_section(
+    "Books borrowed for more than 14 days (after duplicates removed)",
+    overdue_books
+)
+
+
+
+
+#--Check Customer ID's in library books exists in the customers table
 
 invalid_customer_ids = books_clean[
     books_clean["Customer ID"].notna()
