@@ -6,11 +6,11 @@
 
 # ------------------------------- IMPORTS -----------------------------
 import pandas as pd
-
+import pytest # DR added 23/09/2026 as needed for test_display_section_missing_title()
 # Import the functions that we created in Exercise 3.
 # This means we are testing the real function rather than
 # creating another copy of it in this testing file.
-from cleaning_module import clean_titles, clean_date_column, find_overdue_books
+from cleaning_module import clean_titles, clean_date_column, find_overdue_books, display_section
 # -----------------------------------------------------------------------
 
 
@@ -130,3 +130,20 @@ def test_find_overdue_books_14_day_rule():
 
     # Check that the calculated borrowing period is 16 days.
     assert result.iloc[0]["Days borrowed"] == 16
+
+
+
+
+def test_display_section_missing_title():
+    """
+    Test that display_section raises a ValueError
+    when no title is supplied.
+    """
+
+    # ARRANGE
+    title = ""
+    data = "Some test data"
+
+    # ACT / ASSERT
+    with pytest.raises(ValueError):
+        display_section(title, data)

@@ -1,0 +1,62 @@
+
+
+# Pipeline -> A recipe - it does nothing until something runs..
+# stages -> jobs -> steps
+# RUN -> execution of the pipeline, every push makes a new run (it should have its own log, id, etc)
+# AGENT -> (env) where the to carry out instructions, either self-hosted or defaulted with Microsoft
+# TRIGGER -> condition used to run, e.g. push, pull, etc
+# STAGE -> phase of work in the PL, e.g. build, deploy, stages run seqencetially by default
+# JOB -> unit of work inside a stage, one job runs one agent, this means everything in a job shares the env/folders, etc
+# STEP -> unit of work inside a job, a step could be a task or a script, something that runs top/bottom
+# SCRIPT -> a bunch of cli, e.g pytest -m pytest, GitHub actions (run), etc
+# TASK -> a step that calls a prebuilt unit of work, (think actions) PublishTestResults@2, has the ability to take
+# named input, this is instead of cli seen in scripts, careful updates can break a PL overnight
+# ARTEFACT -> typically a handover, file produced at the end of a agents workload
+# ENVIRONMENT -> target to deploy, prod, test, etc
+
+# continueous delivery stage:
+stages:
+  -stage: Test
+  jobs:
+    -job: Pytest
+    pool: 
+      vmImage: ubuntu-latest
+    steps:
+      -script: pytest 
+      displayName: Testing..
+  -stage: DeployToProd
+  dependsOn: Test
+  condition: succeeded # Only runs if Test passes
+  jobs:
+    -deployment: release
+    environment: production # auth/approval checks ran here = manaual gate 
+    -job: Pytest
+    pool: 
+      vmImage: ubuntu-latest
+    strategy: 
+    runOnce:
+      deploy:
+        steps:
+          -steps: -echo "deploying"
+          displayName: Deploying..
+
+
+steps:
+  -task: AzureKeyVault@2
+  inputs:
+    azureSubscription: eds-data-platform-prod
+    KeyVaultName: eds-data-key-Vault
+    RunAsPreJob: true 
+env:
+  DATABRICKS_HOST: $(secret_host)
+  DOCKER_HUB_LOGIN: $(secret_password)
+
+
+
+steps:
+  -task: UsePythonVersion@1
+    input: 
+      versionSpec: '3.14'
+  -script: pip install -r requirements.txt 
+  displayName: Installing modules
+      
