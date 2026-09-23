@@ -45,6 +45,22 @@ jobs:
       - name: Run Pytest
         run: pytest testing_module.py -v
 
+
+
+      # Demonstrate using a GitHub repository secret
+      - name: Use GitHub secret
+        env:
+          DEMO_MESSAGE: ${{ secrets.DEMO_MESSAGE }}
+        run: |
+          if [ -n "$ACT5P2_LIBRARY_SECRET" ]; then
+            echo "GitHub secret was successfully accessed"
+          else
+            echo "GitHub secret was not available"
+            exit 1
+          fi
+
+
+
       # Display confirmation if all previous steps have succeeded
       - name: Pipeline completed
         run: echo "David Rees - Library application tests completed successfully"
