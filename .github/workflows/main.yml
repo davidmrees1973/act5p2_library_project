@@ -43,7 +43,8 @@ jobs:
 
       # Run the unit tests created in Exercise 4
       - name: Run Pytest
-        run: pytest testing_module.py -v
+        # run: pytest testing_module.py -v
+        run: python -m pytest tests/testing_module.py -v
 
 
 
