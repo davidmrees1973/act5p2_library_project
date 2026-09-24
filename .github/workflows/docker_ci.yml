@@ -8,10 +8,10 @@ on:
 
   workflow_dispatch:
 
-  env:
+env:
   IMAGE_NAME: library-project
 
-  jobs:
+jobs:
 
   test:
     name: Run Python Tests
