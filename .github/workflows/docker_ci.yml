@@ -1,0 +1,82 @@
+name: David Docker CI/CD Job
+
+# Run this workflow when changes are pushed to main,
+# or allow it to be run manually from GitHub Actions.
+on:
+  push:
+    branches: ["main"]
+
+  workflow_dispatch:
+
+  env:
+  IMAGE_NAME: library-project
+
+  jobs:
+
+  test:
+    name: Run Python Tests
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      
+      #Run Python tests
+      - name: Run Pytest
+        run: |
+          python -m pytest tests/testing_module.py -v
+
+  #The build only runs if the above test passed (need: test)
+  build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      #Build Docker Image
+      - name: Create Docker Image
+        run: |
+          docker build \
+            --file docker/Dockerfile \
+            --tag $IMAGE_NAME:${{ github.sha }} \
+            .       
+            
+
+
+      #Run the image
+      - name: Run Docker Image
+        run: |
+          docker run --rm \
+            $IMAGE_NAME:${{ github.sha }}
+
+      #Save Docker image
+      - name: Save Docker Image
+        run: |
+          docker save \
+            $IMAGE_NAME:${{ github.sha }} \
+            --output $IMAGE_NAME.tar
+
+      # Upload .tar image
+      - name: Upload Docker Image Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.IMAGE_NAME }}-${{ github.sha }}
+          path: ${{ env.IMAGE_NAME }}.tar
+          if-no-files-found: error  

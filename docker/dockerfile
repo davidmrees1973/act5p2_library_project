@@ -8,12 +8,13 @@ WORKDIR /app
 # Invoke a shell in the image -> run the command below.
 COPY requirements.txt .
 
-RUN pip install -no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 
 # Copy all the project files into the App folder?
 COPY . .
 
 # Mirrors ENTRYPOINT -> This command will run when the container starts (not at build time)
-CMD ["python", "src/main.py"]
+#CMD ["python", "src/main.py"]
+CMD ["python", "src/cleaning_module.py"]
 #ENTRYPOINT is a fixed executable, CMS is a default 
