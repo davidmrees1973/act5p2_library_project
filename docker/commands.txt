@@ -1,0 +1,19 @@
+## Starting point, build an image
+
+docker build -t projectapp:1.0. # packages the app and the dependencies into an image
+docker push projectapp:1.0. # push (ship) that image, registry (ci pl is doing)
+docker run projectapp:1.0. # run it, (it will be runnable on any machine with docker)
+
+## Remote starting point, pull an image
+docker pull "unique location/idenity" projectapp:1.0. # pull from the remote resource
+build -> image -> artefact repo
+Registries that can hold an image, include things like: DockerHub, GitHub Container Registry, Azure CR, AWS CR.
+
+## Running & Inspection
+
+docker image # idenity/inert templates of images (sat on disk/local) NOT Running
+docker ps # examine the docker process RUNNING
+docker ps -a # show you even shut down containers
+docker run -d --name c1 projectapp:1.0. # -d detach
+docker run -d --name c2 projectapp:1.0. # c2 implies a seperate container, that statement implies that containers
+run more than one image
