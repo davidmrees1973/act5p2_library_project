@@ -39,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r pipeline/requirements.txt
+          pip install -r requirements.txt
 
       # Run the unit tests created in Exercise 4
       - name: Run Pytest
